@@ -1,12 +1,13 @@
 import { Application, Response, Request } from "express";
 import fs from 'fs';
 import crypro from 'crypto';
+import { resolve } from 'path';
 
 import { Device, FileAttachment } from '../../db/schemes';
 import { makeid, uploadsDir, removeFile } from "../../helper";
 
 export const files = (app: Application, authHandler: (req: Request, res: Response, next: any) => void) => {
-    app.post('/api/devices/:deviceID/attachment/start', authHandler, async(req: Request, res: Response) => {
+    app.post('/api/devices/:deviceID/attachment/start', authHandler, async (req: Request, res: Response) => {
         const deviceID = req.params.deviceID;
         const foundDevice = await Device.findOne({ deviceID });
         if (!foundDevice) {
@@ -45,7 +46,7 @@ export const files = (app: Application, authHandler: (req: Request, res: Respons
         return res.send({ fileID: id });
     });
 
-    app.put('/api/devices/:deviceID/attachment/append/:fileID', authHandler, async(req: Request, res: Response) => {
+    app.put('/api/devices/:deviceID/attachment/append/:fileID', authHandler, async (req: Request, res: Response) => {
         const deviceID = req.params.deviceID;
         const fileID = req.params.fileID;
         console.log('find device:', deviceID, 'file', fileID);
@@ -69,7 +70,7 @@ export const files = (app: Application, authHandler: (req: Request, res: Respons
         }
     });
 
-    app.post('/api/devices/:deviceID/attachment/finish/:fileID', authHandler, async(req: Request, res: Response) => {
+    app.post('/api/devices/:deviceID/attachment/finish/:fileID', authHandler, async (req: Request, res: Response) => {
         const deviceID = req.params.deviceID;
         const fileID = req.params.fileID;
         console.log('find device:', deviceID, 'file', fileID);
@@ -82,7 +83,28 @@ export const files = (app: Application, authHandler: (req: Request, res: Respons
         return res.sendStatus(200);
     });
 
-    app.get('/api/devices/attachment/cleanup', authHandler, async(req: Request, res: Response) => {
+    app.get('/api/devices/:deviceID/attachment/latest', async (req: Request, res: Response) => {
+        console.log('latest');
+        const deviceID = req.params.deviceID;
+        const foundDevice = await Device.findOne({ deviceID });
+        if (!foundDevice) {
+            return res.sendStatus(404); 
+        }
+
+        const attachments = await FileAttachment.find({ deviceID, state: 'ready' }).sort({ created: -1 }).limit(1);
+        if (attachments[0]) {
+            const attachment = attachments[0];
+            const filePath = uploadsDir + '/' + attachment.name!;
+            if (fs.existsSync(filePath)) {
+                const absolutePath = resolve(filePath);
+                console.log(absolutePath);
+                return res.sendFile(absolutePath);
+            }
+        }
+        res.sendStatus(404);
+    });
+
+    app.get('/api/devices/attachment/cleanup', authHandler, async (req: Request, res: Response) => {
         removeEmptyAttachments();
         res.sendStatus(200);
     });
