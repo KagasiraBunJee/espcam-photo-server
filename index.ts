@@ -1,6 +1,7 @@
 import express, { Application } from 'express';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import fs from 'fs';
 
 import { Api } from './api';
 
@@ -24,8 +25,14 @@ const setup = async () => {
     let apiEnd = Api();
     apiEnd.register(app);
     
-    app.listen(serverPort, () => {
+    app.listen(serverPort, '192.168.50.212', () => {
         console.log(`Server is Fire at http://localhost:${serverPort}`);
+        
+        // create upload dir if not exists
+        const uploadDir = "./uploads";
+        if (!fs.existsSync(uploadDir)){
+            fs.mkdirSync(uploadDir);
+        }
     });
 };
 
