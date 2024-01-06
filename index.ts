@@ -25,7 +25,7 @@ const setup = async () => {
     let apiEnd = Api();
     apiEnd.register(app);
     
-    app.listen(serverPort, '192.168.50.212', () => {
+    app.listen(serverPort, () => {
         console.log(`Server is Fire at http://localhost:${serverPort}`);
         
         // create upload dir if not exists
