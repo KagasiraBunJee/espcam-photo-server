@@ -1,0 +1,71 @@
+```mermaid
+---
+title: View elements
+---
+erDiagram
+    TitleView {
+        String title
+        Image icon
+        Style style
+    }
+```
+```mermaid
+erDiagram
+    ControlItem {
+        Image icon
+        String title
+        View accessoryView
+        Function action
+    }
+```
+```mermaid
+erDiagram
+    ControlItemSwitch {
+        Bool state
+    }
+```
+```mermaid
+erDiagram
+    NavigationItem {
+        Image backIcon
+        Image forwardIcon
+        NavigationController navigation
+    }
+```
+```mermaid
+erDiagram
+    TabBarItem {
+        TitleView title
+        Function close
+    }
+```
+
+
+```mermaid
+---
+title: List view
+---
+erDiagram
+    OutlineView ||--|{ FileItem : files
+    OutlineView
+    FileItem {
+        String name
+        Image icon
+        Bool isFolder
+    }
+```
+Composite view
+```mermaid
+graph TD;
+    Controls-->TitleView & ControlItem & ControlItemSwitch;
+```
+
+```mermaid
+graph TD;
+    Tabbar-->TabBarItem & Button;
+```
+
+```mermaid
+graph TD;
+    Breadcrumbs-->NavigationItem;
+```

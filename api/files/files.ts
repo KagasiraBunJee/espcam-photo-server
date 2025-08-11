@@ -11,6 +11,7 @@ export const files = (app: Application, authHandler: (req: Request, res: Respons
         const deviceID = req.params.deviceID;
         const foundDevice = await Device.findOne({ deviceID });
         if (!foundDevice) {
+            console.log(`device ${deviceID} not found`);
             return res.sendStatus(404);
         }
 
@@ -28,6 +29,7 @@ export const files = (app: Application, authHandler: (req: Request, res: Respons
         const path = uploadsDir + '/'+ imageName + '.' + extension;
         const fd = fs.openSync(path, 'w');
         fs.closeSync(fd);
+        console.log(`filename ${name} prepared`);
         
         const id = Math.floor(100000 + Math.random() * 900000);
 
@@ -40,8 +42,10 @@ export const files = (app: Application, authHandler: (req: Request, res: Respons
             fileID: id
         });
         if (!image) {
+            console.log(`device ${deviceID} not found`);
             return res.sendStatus(401);
         }
+        console.log(`file ${id} created`);
 
         return res.send({ fileID: id });
     });
