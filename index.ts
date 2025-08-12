@@ -1,7 +1,8 @@
-import express, { Application } from 'express';
+import express, { Application, Request, Response } from 'express';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import fs from 'fs';
+import path from 'path';
 
 import { Api } from './api';
 
@@ -21,6 +22,23 @@ const setup = async () => {
 
     app.use(express.json());
     app.use(express.raw({ limit: '100MB' }));
+    
+    app.get('/', (req: Request, res: Response) => {
+        const protocol = req.protocol;
+        const host = req.get('host');
+        const baseUrl = `${protocol}://${host}`;
+        
+        const indexPath = path.join(__dirname, '../public/index.html');
+        let html = fs.readFileSync(indexPath, 'utf8');
+        
+        html = html.replace(
+            'let baseUrl = \'\';',
+            `let baseUrl = '${baseUrl}';`
+        );
+        
+        res.send(html);
+    });
+    
     app.use(express.static('public'));
 
     let apiEnd = Api();
