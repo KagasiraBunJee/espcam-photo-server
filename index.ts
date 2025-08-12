@@ -1,7 +1,9 @@
-import express, { Application } from 'express';
+import express, { Application, Request, Response } from 'express';
+import cors from 'cors';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
 import fs from 'fs';
+import path from 'path';
 
 import { Api } from './api';
 
@@ -19,8 +21,41 @@ const setup = async () => {
     await mongoose.connect('mongodb://'+dbDomain+':'+dbPort, { user: dbLogin, pass: dbPass, dbName });
     const app: Application = express();
 
+    app.use(cors({
+        origin: function (origin, callback) {
+            if (!origin) return callback(null, true);
+            
+            const url = new URL(origin);
+            const allowedPorts = ['8123', '7123'];
+            
+            if (allowedPorts.includes(url.port)) {
+                return callback(null, true);
+            }
+            
+            return callback(null, false);
+        },
+        credentials: true
+    }));
+    
     app.use(express.json());
     app.use(express.raw({ limit: '100MB' }));
+    
+    app.get('/', (req: Request, res: Response) => {
+        const protocol = req.protocol;
+        const host = req.get('host');
+        const baseUrl = `${protocol}://${host}:${serverPort}`;
+        
+        const indexPath = path.join(__dirname, '../public/index.html');
+        let html = fs.readFileSync(indexPath, 'utf8');
+        
+        html = html.replace(
+            'let baseUrl = \'\';',
+            `let baseUrl = '${baseUrl}';`
+        );
+        
+        res.send(html);
+    });
+    
     app.use(express.static('public'));
 
     let apiEnd = Api();

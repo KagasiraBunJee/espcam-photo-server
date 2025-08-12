@@ -11,9 +11,14 @@
         <header>
             <h1>ESP32 Camera Dashboard</h1>
             <nav>
-                <button class="nav-link active" onclick="showDevices()">Devices</button>
-                <button class="nav-link" onclick="showAllImages()">All Images</button>
-                <button class="nav-link" id="deviceViewBtn" onclick="showDevices()" style="display:none;"></button>
+                <div class="nav-links">
+                    <button class="nav-link active" onclick="showDevices()">Devices</button>
+                    <button class="nav-link" onclick="showAllImages()">All Images</button>
+                    <button class="nav-link" id="deviceViewBtn" onclick="showDevices()" style="display:none;"></button>
+                </div>
+                <button class="refresh-btn" onclick="refreshCurrentView()" title="Refresh">
+                    <span class="refresh-icon">⟳</span>
+                </button>
             </nav>
         </header>
         
@@ -53,6 +58,7 @@
     <script>
         let currentView = 'devices';
         let currentDeviceID = null;
+        let baseUrl = '';
         
         function showView(viewName) {
             document.querySelectorAll('.view').forEach(view => view.style.display = 'none');
@@ -76,7 +82,7 @@
         
         async function loadDevices() {
             try {
-                const response = await fetch('/api/dashboard/devices');
+                const response = await fetch(`${baseUrl}/api/dashboard/devices`);
                 const devices = await response.json();
                 
                 const grid = document.getElementById('devicesGrid');
@@ -113,7 +119,7 @@
         
         async function loadAllImages() {
             try {
-                const response = await fetch('/api/dashboard/images/all');
+                const response = await fetch(`${baseUrl}/api/dashboard/images/all`);
                 const images = await response.json();
                 
                 const grid = document.getElementById('allImagesGrid');
@@ -124,8 +130,8 @@
                 }
                 
                 grid.innerHTML = images.map(image => `
-                    <div class="image-card" onclick="openModal('${image.url}', '${image.name}', '${image.deviceID}', '${new Date(image.created).toLocaleString()}')">
-                        <img src="${image.url}" alt="${image.name}" loading="lazy">
+                    <div class="image-card" onclick="openModal('${baseUrl}${image.url}', '${image.name}', '${image.deviceID}', '${new Date(image.created).toLocaleString()}')">
+                        <img src="${baseUrl}${image.url}" alt="${image.name}" loading="lazy">
                         <div class="image-info">
                             <div class="image-name">${image.name}</div>
                             <div class="image-device">Device: ${image.deviceID}</div>
@@ -140,7 +146,7 @@
         
         async function loadDeviceImages(deviceID) {
             try {
-                const response = await fetch(`/api/dashboard/devices/${deviceID}/images`);
+                const response = await fetch(`${baseUrl}/api/dashboard/devices/${deviceID}/images`);
                 const images = await response.json();
                 
                 const grid = document.getElementById('deviceImagesGrid');
@@ -151,8 +157,8 @@
                 }
                 
                 grid.innerHTML = images.map(image => `
-                    <div class="image-card" onclick="openModal('${image.url}', '${image.name}', '${deviceID}', '${new Date(image.created).toLocaleString()}')">
-                        <img src="${image.url}" alt="${image.name}" loading="lazy">
+                    <div class="image-card" onclick="openModal('${baseUrl}${image.url}', '${image.name}', '${deviceID}', '${new Date(image.created).toLocaleString()}')">
+                        <img src="${baseUrl}${image.url}" alt="${image.name}" loading="lazy">
                         <div class="image-info">
                             <div class="image-name">${image.name}</div>
                             <div class="image-date">${new Date(image.created).toLocaleString()}</div>
@@ -192,6 +198,27 @@
         
         function closeModal() {
             document.getElementById('imageModal').style.display = 'none';
+        }
+        
+        function refreshCurrentView() {
+            const refreshBtn = document.querySelector('.refresh-btn');
+            refreshBtn.classList.add('refreshing');
+            
+            if (currentView === 'devices') {
+                loadDevices().then(() => {
+                    refreshBtn.classList.remove('refreshing');
+                });
+            } else if (currentView === 'allImages') {
+                loadAllImages().then(() => {
+                    refreshBtn.classList.remove('refreshing');
+                });
+            } else if (currentView === 'deviceImages' && currentDeviceID) {
+                loadDeviceImages(currentDeviceID).then(() => {
+                    refreshBtn.classList.remove('refreshing');
+                });
+            } else {
+                refreshBtn.classList.remove('refreshing');
+            }
         }
         
         document.addEventListener('keydown', function(e) {
