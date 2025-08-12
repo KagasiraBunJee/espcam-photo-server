@@ -1,6 +1,7 @@
 import { Application, Request, Response } from 'express';
 import { devices } from './devices';
 import { files } from './files';
+import { dashboard } from './dashboard';
 
 const handleApiAuth = (req: Request, res: Response, next: any) => {
     const token = req.headers['x-auth-token'];
@@ -14,5 +15,6 @@ export const Api = () => { return {
     register: (app: Application) => {
         devices(app, handleApiAuth);
         files(app, handleApiAuth);
+        dashboard(app);
     }
 }};

@@ -20,7 +20,8 @@ const setup = async () => {
     const app: Application = express();
 
     app.use(express.json());
-    app.use(express.raw({ limit: '10MB' }));
+    app.use(express.raw({ limit: '100MB' }));
+    app.use(express.static('public'));
 
     let apiEnd = Api();
     apiEnd.register(app);
