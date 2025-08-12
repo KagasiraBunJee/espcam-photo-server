@@ -11,9 +11,14 @@
         <header>
             <h1>ESP32 Camera Dashboard</h1>
             <nav>
-                <button class="nav-link active" onclick="showDevices()">Devices</button>
-                <button class="nav-link" onclick="showAllImages()">All Images</button>
-                <button class="nav-link" id="deviceViewBtn" onclick="showDevices()" style="display:none;"></button>
+                <div class="nav-links">
+                    <button class="nav-link active" onclick="showDevices()">Devices</button>
+                    <button class="nav-link" onclick="showAllImages()">All Images</button>
+                    <button class="nav-link" id="deviceViewBtn" onclick="showDevices()" style="display:none;"></button>
+                </div>
+                <button class="refresh-btn" onclick="refreshCurrentView()" title="Refresh">
+                    <span class="refresh-icon">⟳</span>
+                </button>
             </nav>
         </header>
         
@@ -193,6 +198,27 @@
         
         function closeModal() {
             document.getElementById('imageModal').style.display = 'none';
+        }
+        
+        function refreshCurrentView() {
+            const refreshBtn = document.querySelector('.refresh-btn');
+            refreshBtn.classList.add('refreshing');
+            
+            if (currentView === 'devices') {
+                loadDevices().then(() => {
+                    refreshBtn.classList.remove('refreshing');
+                });
+            } else if (currentView === 'allImages') {
+                loadAllImages().then(() => {
+                    refreshBtn.classList.remove('refreshing');
+                });
+            } else if (currentView === 'deviceImages' && currentDeviceID) {
+                loadDeviceImages(currentDeviceID).then(() => {
+                    refreshBtn.classList.remove('refreshing');
+                });
+            } else {
+                refreshBtn.classList.remove('refreshing');
+            }
         }
         
         document.addEventListener('keydown', function(e) {
