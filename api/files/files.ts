@@ -90,14 +90,21 @@ export const files = (app: Application, authHandler: (req: Request, res: Respons
     app.get('/api/devices/:deviceID/attachment/latest', async (req: Request, res: Response) => {
         console.log('latest');
         const deviceID = req.params.deviceID;
+        const fileID = req.query.fileID;
         const foundDevice = await Device.findOne({ deviceID });
         if (!foundDevice) {
             return res.sendStatus(404); 
         }
 
-        const attachments = await FileAttachment.find({ deviceID, state: 'ready' }).sort({ created: -1 }).limit(1);
-        if (attachments[0]) {
-            const attachment = attachments[0];
+        let attachment;
+        if (fileID) {
+            attachment = await FileAttachment.findOne({ deviceID, fileID, state: 'ready' });
+        } else {
+            const attachments = await FileAttachment.find({ deviceID, state: 'ready' }).sort({ created: -1 }).limit(1);
+            attachment = attachments[0];
+        }
+
+        if (attachment) {
             const filePath = uploadsDir + '/' + attachment.name!;
             if (fs.existsSync(filePath)) {
                 const absolutePath = resolve(filePath);
