@@ -26,7 +26,7 @@ const setup = async () => {
     app.get('/', (req: Request, res: Response) => {
         const protocol = req.protocol;
         const host = req.get('host');
-        const baseUrl = `${protocol}://${host}`;
+        const baseUrl = `${protocol}://${host}:${serverPort}`;
         
         const indexPath = path.join(__dirname, '../public/index.html');
         let html = fs.readFileSync(indexPath, 'utf8');
